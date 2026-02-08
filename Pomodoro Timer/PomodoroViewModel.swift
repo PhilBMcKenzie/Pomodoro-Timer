@@ -31,20 +31,21 @@ struct PomodoroDurations: Equatable {
 
     func sanitized() -> PomodoroDurations {
         PomodoroDurations(
-            focusMinutes: max(1, focusMinutes),
-            shortBreakMinutes: max(1, shortBreakMinutes),
-            longBreakMinutes: max(1, longBreakMinutes)
+            focusMinutes: min(max(1, focusMinutes), 120),
+            shortBreakMinutes: min(max(1, shortBreakMinutes), 60),
+            longBreakMinutes: min(max(1, longBreakMinutes), 90)
         )
     }
 
     func durationSeconds(for session: PomodoroSession) -> Int {
+        let safe = sanitized()
         switch session {
         case .focus:
-            return max(1, focusMinutes) * 60
+            return safe.focusMinutes * 60
         case .shortBreak:
-            return max(1, shortBreakMinutes) * 60
+            return safe.shortBreakMinutes * 60
         case .longBreak:
-            return max(1, longBreakMinutes) * 60
+            return safe.longBreakMinutes * 60
         }
     }
 }
@@ -130,6 +131,7 @@ final class PomodoroViewModel: ObservableObject {
     func start() {
         if didCompleteCycle {
             clearCycleCompletionState()
+            completedFocusSessions = 0
             currentSession = .focus
             remainingSeconds = durations.durationSeconds(for: .focus)
         }

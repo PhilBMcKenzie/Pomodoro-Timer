@@ -23,12 +23,10 @@ struct ContentView: View {
     @State private var sessionChangeCueActive = false
     @State private var sessionCueResetTask: Task<Void, Never>?
     @State private var activeCoachingMessage = ""
-    @State private var sessionTransitionMessage = ""
-    @State private var sessionTransitionMessageVisible = false
-    @State private var sessionTransitionMessageTask: Task<Void, Never>?
     @State private var cycleCompletionCelebrationVisible = false
     @State private var cycleCompletionCelebrationBurst = false
     @State private var cycleCompletionCelebrationTask: Task<Void, Never>?
+    @State private var animateRing = true
     @State private var lastMessageRefreshBucket = 0
     @Environment(\.scenePhase) private var scenePhase
     private let secondaryButtonWidth: CGFloat = 150
@@ -102,7 +100,6 @@ struct ContentView: View {
             if viewModel.didCompleteCycle {
                 feedbackManager.handleCycleCompleted()
                 triggerCycleCompletionCelebration()
-                triggerSessionTransitionMessage(with: "All 4 Pomodoros complete. Great work.")
             } else {
                 feedbackManager.handleSessionCompleted(
                     soundOption: completionSoundOption(for: completedSession)
@@ -155,9 +152,13 @@ struct ContentView: View {
         }
         .onChange(of: scenePhase) { _, newValue in
             if newValue == .active {
+                animateRing = false
                 feedbackManager.cancelScheduledSessionEndNotification()
                 viewModel.syncAfterForeground()
                 handlePendingNotificationActionIfNeeded()
+                DispatchQueue.main.async {
+                    animateRing = true
+                }
             } else if shouldScheduleSessionEndNotification {
                 feedbackManager.scheduleSessionEndNotification(
                     for: viewModel.currentSession,
@@ -171,8 +172,6 @@ struct ContentView: View {
         .onDisappear {
             sessionCueResetTask?.cancel()
             sessionCueResetTask = nil
-            sessionTransitionMessageTask?.cancel()
-            sessionTransitionMessageTask = nil
             cycleCompletionCelebrationTask?.cancel()
             cycleCompletionCelebrationTask = nil
         }
@@ -196,25 +195,15 @@ struct ContentView: View {
                 progress: viewModel.remainingProgress,
                 session: viewModel.currentSession
             )
+            .animation(animateRing ? .linear(duration: 0.95) : nil, value: viewModel.remainingProgress)
 
-            TimelineView(.animation) { context in
-                VStack(spacing: 10) {
-                    Text(viewModel.timeLabel)
-                        .font(.system(size: 56, weight: .bold, design: .rounded))
-                        .monospacedDigit()
-                        .accessibilityLabel("Time remaining")
-                        .opacity(countdownTextOpacity(at: context.date))
-
-                    if coachingStatementsEnabled {
-                        Text(activeCoachingMessage)
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                            .lineLimit(2)
-                            .minimumScaleFactor(0.75)
-                            .frame(maxWidth: diameter * 0.58)
-                            .accessibilityLabel("Coaching message")
+            Group {
+                if shouldPulseCountdownText {
+                    TimelineView(.animation) { context in
+                        timerTextContent(diameter: diameter, opacity: countdownTextOpacity(at: context.date))
                     }
+                } else {
+                    timerTextContent(diameter: diameter, opacity: 1)
                 }
             }
         }
@@ -222,25 +211,6 @@ struct ContentView: View {
             Circle()
                 .stroke(sessionAccentColor.opacity(sessionChangeCueActive ? 0.32 : 0), lineWidth: 4)
                 .padding(8)
-        }
-        .overlay(alignment: .top) {
-            if coachingStatementsEnabled && sessionTransitionMessageVisible {
-                Text(sessionTransitionMessage)
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.8)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .background(.ultraThinMaterial, in: Capsule())
-                    .overlay {
-                        Capsule()
-                            .stroke(sessionAccentColor.opacity(0.4), lineWidth: 1)
-                    }
-                    .padding(.top, 18)
-                    .padding(.horizontal, 24)
-                    .transition(.scale(scale: 0.92).combined(with: .opacity))
-            }
         }
         .overlay {
             if cycleCompletionCelebrationVisible {
@@ -250,6 +220,28 @@ struct ContentView: View {
         }
         .scaleEffect(sessionChangeCueActive ? 1.02 : 1)
         .frame(width: diameter, height: diameter)
+    }
+
+    @ViewBuilder
+    private func timerTextContent(diameter: CGFloat, opacity: Double) -> some View {
+        VStack(spacing: 10) {
+            Text(viewModel.timeLabel)
+                .font(.system(size: 56, weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .accessibilityLabel("Time remaining")
+                .opacity(opacity)
+
+            if coachingStatementsEnabled {
+                Text(activeCoachingMessage)
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.75)
+                    .frame(maxWidth: diameter * 0.58)
+                    .accessibilityLabel("Coaching message")
+            }
+        }
     }
 
     private var shouldPulseCountdownText: Bool {
@@ -286,7 +278,7 @@ struct ContentView: View {
                         .frame(width: secondaryButtonWidth)
                 }
                 .buttonStyle(.bordered)
-                .controlSize(.small)
+                .controlSize(.large)
                 .tint(Color.secondary)
 
                 Button {
@@ -296,7 +288,7 @@ struct ContentView: View {
                         .frame(width: secondaryButtonWidth)
                 }
                 .buttonStyle(.bordered)
-                .controlSize(.small)
+                .controlSize(.large)
                 .tint(Color.secondary)
             }
 
@@ -308,7 +300,7 @@ struct ContentView: View {
                         .frame(width: secondaryButtonWidth)
                 }
                 .buttonStyle(.bordered)
-                .controlSize(.small)
+                .controlSize(.large)
                 .tint(Color.secondary)
 
                 Button {
@@ -318,7 +310,7 @@ struct ContentView: View {
                         .frame(width: secondaryButtonWidth)
                 }
                 .buttonStyle(.bordered)
-                .controlSize(.small)
+                .controlSize(.large)
                 .tint(Color.secondary)
                 .accessibilityLabel("Open timer preferences")
             }
@@ -409,7 +401,6 @@ struct ContentView: View {
         )
         activeCoachingMessage = refreshedMessage
         lastMessageRefreshBucket = messageRefreshBucket(for: viewModel.currentSession)
-        triggerSessionTransitionMessage(with: refreshedMessage)
     }
 
     private func updateCoachingMessageIfNeeded() {
@@ -467,28 +458,7 @@ struct ContentView: View {
         }
     }
 
-    private func triggerSessionTransitionMessage(with message: String) {
-        sessionTransitionMessageTask?.cancel()
-        sessionTransitionMessage = message
-
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-            sessionTransitionMessageVisible = true
-        }
-
-        sessionTransitionMessageTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 1_200_000_000)
-            guard !Task.isCancelled else { return }
-            withAnimation(.easeOut(duration: 0.2)) {
-                sessionTransitionMessageVisible = false
-            }
-        }
-    }
-
     private func handleCoachingStatementsPreferenceChange(isEnabled: Bool) {
-        sessionTransitionMessageTask?.cancel()
-        sessionTransitionMessageTask = nil
-        sessionTransitionMessageVisible = false
-
         if isEnabled {
             initializeCoachingMessage()
         } else {
@@ -722,7 +692,6 @@ private struct CircularCountdownRing: View {
                 .rotationEffect(.degrees(-90))
                 .shadow(color: session.ringColors[0].opacity(0.25), radius: 8)
         }
-        .animation(.linear(duration: 0.95), value: progress)
     }
 }
 

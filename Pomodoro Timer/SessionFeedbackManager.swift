@@ -123,6 +123,7 @@ final class SessionFeedbackManager: NSObject, ObservableObject {
             audioPlayer?.prepareToPlay()
             audioPlayer?.play()
         } catch {
+            print("[SessionFeedbackManager] Sound playback failed for '\(fileName)': \(error)")
             audioPlayer = nil
         }
     }
@@ -133,6 +134,7 @@ final class SessionFeedbackManager: NSObject, ObservableObject {
             try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
             try session.setActive(true)
         } catch {
+            print("[SessionFeedbackManager] Audio session configuration failed: \(error)")
         }
     }
 
