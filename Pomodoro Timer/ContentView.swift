@@ -41,28 +41,29 @@ struct ContentView: View {
                 let isLandscape = geometry.size.width > geometry.size.height
                 let contentPadding: CGFloat = 20
                 let landscapeRingDiameter = max(
-                    220,
+                    200,
                     min(
-                        geometry.size.height - (contentPadding * 2),
-                        geometry.size.width * 0.55
+                        geometry.size.height - (contentPadding * 2) - 20,
+                        geometry.size.width * 0.42
                     )
                 )
 
                 Group {
                     if isLandscape {
-                        HStack(alignment: .center, spacing: 28) {
-                            timerRingView(diameter: landscapeRingDiameter)
+                        HStack(alignment: .center, spacing: 0) {
+                            timerRingView(diameter: landscapeRingDiameter, ringLineWidth: 26)
+                                .frame(maxWidth: .infinity)
 
                             VStack(spacing: 20) {
                                 sessionHeaderView
                                 controlsAndInfoView
                             }
-                            .frame(maxWidth: min(360, geometry.size.width * 0.42))
+                            .frame(width: geometry.size.width * 0.46)
                         }
                     } else {
                         VStack(spacing: 28) {
                             sessionHeaderView
-                            timerRingView(diameter: 280)
+                            timerRingView(diameter: 280, ringLineWidth: 20)
                             controlsAndInfoView
                         }
                     }
@@ -189,16 +190,17 @@ struct ContentView: View {
         .scaleEffect(sessionChangeCueActive ? 1.03 : 1)
     }
 
-    private func timerRingView(diameter: CGFloat) -> some View {
+    private func timerRingView(diameter: CGFloat, ringLineWidth: CGFloat = 20) -> some View {
         ZStack {
             CircularCountdownRing(
                 progress: viewModel.remainingProgress,
-                session: viewModel.currentSession
+                session: viewModel.currentSession,
+                lineWidth: ringLineWidth
             )
             .animation(animateRing ? .linear(duration: 0.95) : nil, value: viewModel.remainingProgress)
 
             Text("\(viewModel.cyclePosition)")
-                .font(.system(size: diameter * 0.7, weight: .bold, design: .rounded))
+                .font(.system(size: diameter * 0.85, weight: .bold, design: .rounded))
                 .foregroundStyle(Color.gray.opacity(0.08))
 
             Group {
@@ -677,11 +679,12 @@ private struct TimerPreferencesView: View {
 private struct CircularCountdownRing: View {
     let progress: Double
     let session: PomodoroSession
+    var lineWidth: CGFloat = 20
 
     var body: some View {
         ZStack {
             Circle()
-                .stroke(lineWidth: 20)
+                .stroke(lineWidth: lineWidth)
                 .foregroundStyle(.secondary.opacity(0.15))
 
             Circle()
@@ -691,7 +694,7 @@ private struct CircularCountdownRing: View {
                         colors: session.ringColors,
                         center: .center
                     ),
-                    style: StrokeStyle(lineWidth: 20, lineCap: .round)
+                    style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
                 .shadow(color: session.ringColors[0].opacity(0.25), radius: 8)
