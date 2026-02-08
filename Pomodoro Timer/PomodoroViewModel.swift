@@ -84,6 +84,16 @@ final class PomodoroViewModel: ObservableObject {
         return String(format: "%02d:%02d", minutes, seconds)
     }
 
+    var cyclePosition: Int {
+        if didCompleteCycle {
+            return 4
+        }
+        if currentSession == .longBreak, completedFocusSessions > 0, completedFocusSessions.isMultiple(of: 4) {
+            return 4
+        }
+        return (completedFocusSessions % 4) + 1
+    }
+
     var cyclePositionLabel: String {
         if didCompleteCycle {
             return "All 4 Pomodoros complete"

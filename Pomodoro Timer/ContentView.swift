@@ -197,6 +197,10 @@ struct ContentView: View {
             )
             .animation(animateRing ? .linear(duration: 0.95) : nil, value: viewModel.remainingProgress)
 
+            Text("\(viewModel.cyclePosition)")
+                .font(.system(size: diameter * 0.7, weight: .bold, design: .rounded))
+                .foregroundStyle(Color.gray.opacity(0.08))
+
             Group {
                 if shouldPulseCountdownText {
                     TimelineView(.animation) { context in
