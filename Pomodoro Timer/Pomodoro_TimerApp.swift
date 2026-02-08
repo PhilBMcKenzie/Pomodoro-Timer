@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct Pomodoro_TimerApp: App {
+    @StateObject private var feedbackManager = SessionFeedbackManager()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(feedbackManager: feedbackManager)
         }
     }
 }
