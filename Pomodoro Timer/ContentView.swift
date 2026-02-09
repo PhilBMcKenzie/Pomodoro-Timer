@@ -226,7 +226,7 @@ struct ContentView: View {
         }
         .overlay {
             if cycleCompletionCelebrationVisible {
-                CycleCompletionCelebrationOverlay(isBursting: cycleCompletionCelebrationBurst)
+                CycleCompletionCelebrationOverlay(isBursting: cycleCompletionCelebrationBurst, diameter: diameter)
                     .transition(.scale(scale: 0.85).combined(with: .opacity))
             }
         }
@@ -712,17 +712,23 @@ private struct CircularCountdownRing: View {
 
 private struct CycleCompletionCelebrationOverlay: View {
     let isBursting: Bool
+    let diameter: CGFloat
 
     var body: some View {
+        let burstRadius = diameter * 0.5
+        let iconSize = diameter * 0.14
+        let particleSize: (Int) -> CGFloat = { index in
+            index.isMultiple(of: 2) ? diameter * 0.05 : diameter * 0.035
+        }
+
         ZStack {
             ForEach(0..<16, id: \.self) { index in
                 let angle = (Double(index) / 16.0) * 2 * Double.pi
-                let radius: CGFloat = isBursting ? 150 : 16
-                let size: CGFloat = index.isMultiple(of: 2) ? 14 : 10
+                let radius: CGFloat = isBursting ? burstRadius : 16
 
                 Circle()
                     .fill(celebrationColors[index % celebrationColors.count])
-                    .frame(width: size, height: size)
+                    .frame(width: particleSize(index), height: particleSize(index))
                     .offset(
                         x: CGFloat(cos(angle)) * radius,
                         y: CGFloat(sin(angle)) * radius
@@ -733,7 +739,7 @@ private struct CycleCompletionCelebrationOverlay: View {
             }
 
             Image(systemName: "party.popper.fill")
-                .font(.system(size: isBursting ? 54 : 40, weight: .bold))
+                .font(.system(size: isBursting ? iconSize * 1.35 : iconSize, weight: .bold))
                 .foregroundStyle(.yellow, .orange)
                 .shadow(color: Color.orange.opacity(0.35), radius: 10)
                 .scaleEffect(isBursting ? 1.22 : 1)

@@ -4,28 +4,9 @@ Fragility and reliability issues identified across device form factors and iOS c
 
 ---
 
-## P1 — Likely to cause problems on real-world devices
-
-### 1. Celebration overlay burst radius is not device-relative
-
-**File:** `ContentView.swift:712`
-
-**Problem:** `CycleCompletionCelebrationOverlay` uses a hardcoded burst radius of 150pt. On a 280pt ring, particles fly well outside the ring boundary and may be clipped by the frame. On iPad with a proportionally larger ring (if issue #6 is fixed), 150pt would look undersized.
-
-**Recommended fix:** Pass the ring diameter into the overlay and compute the burst radius as a proportion:
-```swift
-let radius: CGFloat = isBursting ? diameter * 0.55 : 16
-```
-
-**Verification:** Trigger a cycle completion on both iPhone SE and iPad Pro and confirm particles stay within visible bounds.
-
-- [ ] Fixed
-
----
-
 ## P2 — Edge cases that reduce reliability
 
-### 2. Race between foreground sync and notification action handling
+### 1. Race between foreground sync and notification action handling
 
 **File:** `ContentView.swift:154-169`
 
@@ -51,7 +32,7 @@ if newValue == .active {
 
 ---
 
-### 3. Unstructured Tasks may leak if view identity changes
+### 2. Unstructured Tasks may leak if view identity changes
 
 **File:** `ContentView.swift:24, 28`
 
@@ -65,7 +46,7 @@ if newValue == .active {
 
 ---
 
-### 4. Timer callback creates unstructured Task on every tick
+### 3. Timer callback creates unstructured Task on every tick
 
 **File:** `PomodoroViewModel.swift:155-158`
 
@@ -79,7 +60,7 @@ if newValue == .active {
 
 ---
 
-### 5. Notification permission denial is silently ignored
+### 4. Notification permission denial is silently ignored
 
 **File:** `SessionFeedbackManager.swift:37`
 
@@ -96,7 +77,7 @@ UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
 
 ---
 
-### 6. No iPad keyboard shortcut support
+### 5. No iPad keyboard shortcut support
 
 **File:** `ContentView.swift`
 
@@ -117,7 +98,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ## P3 — Minor hardening
 
-### 7. `ringColors[0]` force-indexed without guard
+### 6. `ringColors[0]` force-indexed without guard
 
 **File:** `ContentView.swift:700`
 
@@ -129,7 +110,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ---
 
-### 8. Ring animation re-enable timing is fragile
+### 7. Ring animation re-enable timing is fragile
 
 **File:** `ContentView.swift:160-162`
 
@@ -148,7 +129,7 @@ withTransaction(transaction) {
 
 ---
 
-### 9. Unnecessary iOS 15 availability check
+### 8. Unnecessary iOS 15 availability check
 
 **File:** `SessionFeedbackManager.swift:52-55`
 
