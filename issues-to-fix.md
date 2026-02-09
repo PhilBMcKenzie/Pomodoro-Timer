@@ -6,25 +6,7 @@ Fragility and reliability issues identified across device form factors and iOS c
 
 ## P0 — Will break on certain devices/configurations
 
-### 1. Portrait timer ring and text overflow on small screens
-
-**File:** `ContentView.swift:66, 234-236`
-
-**Problem:** Portrait ring diameter is hardcoded at 280pt. The session title is fixed at `size: 40`, the time label at `size: 56`. The total vertical stack (header ~80pt + ring 280pt + controls ~200pt + spacing + padding) approaches ~656pt, which barely fits an iPhone SE (667pt). Any increase in text size (Dynamic Type, accessibility settings) or any reduction in available height (in-call status bar, Guided Access) will cause content to overflow or be cut off.
-
-**Recommended fix:** Make the ring diameter proportional to available geometry:
-```swift
-let portraitRingDiameter = min(280, geometry.size.height * 0.38)
-```
-Consider wrapping the portrait VStack in a `ScrollView` as a safety net, or use `ViewThatFits` to provide a compact layout variant.
-
-**Verification:** Test on iPhone SE simulator with "Larger Accessibility Sizes" enabled in Settings > Accessibility > Display & Text Size.
-
-- [ ] Fixed
-
----
-
-### 2. Sounds play when device is in Silent Mode
+### 1. Sounds play when device is in Silent Mode
 
 **File:** `SessionFeedbackManager.swift:134`
 
@@ -44,7 +26,7 @@ try session.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
 
 ## P1 — Likely to cause problems on real-world devices
 
-### 3. Audio session is permanently activated
+### 2. Audio session is permanently activated
 
 **File:** `SessionFeedbackManager.swift:131-139`
 
@@ -62,7 +44,7 @@ Move `configureAudioSession()` out of `init()` and into the `playSound` path.
 
 ---
 
-### 4. No Dynamic Type / accessibility text scaling support
+### 3. No Dynamic Type / accessibility text scaling support
 
 **File:** `ContentView.swift` (throughout)
 
@@ -80,7 +62,7 @@ For less critical text, use semantic font styles (`.headline`, `.subheadline`, `
 
 ---
 
-### 5. Timer ring and text look disproportionately small on iPad
+### 4. Timer ring and text look disproportionately small on iPad
 
 **File:** `ContentView.swift:66`
 
@@ -98,7 +80,7 @@ Also scale the font sizes proportionally, or set device-class-appropriate base s
 
 ---
 
-### 6. Concurrency safety / Swift 6 readiness
+### 5. Concurrency safety / Swift 6 readiness
 
 **File:** `SessionFeedbackManager.swift`
 
@@ -121,7 +103,7 @@ Audit for any other non-main-actor access paths.
 
 ---
 
-### 7. Celebration overlay burst radius is not device-relative
+### 6. Celebration overlay burst radius is not device-relative
 
 **File:** `ContentView.swift:712`
 
@@ -140,7 +122,7 @@ let radius: CGFloat = isBursting ? diameter * 0.55 : 16
 
 ## P2 — Edge cases that reduce reliability
 
-### 8. Race between foreground sync and notification action handling
+### 7. Race between foreground sync and notification action handling
 
 **File:** `ContentView.swift:154-169`
 
@@ -166,7 +148,7 @@ if newValue == .active {
 
 ---
 
-### 9. Unstructured Tasks may leak if view identity changes
+### 8. Unstructured Tasks may leak if view identity changes
 
 **File:** `ContentView.swift:24, 28`
 
@@ -180,7 +162,7 @@ if newValue == .active {
 
 ---
 
-### 10. Timer callback creates unstructured Task on every tick
+### 9. Timer callback creates unstructured Task on every tick
 
 **File:** `PomodoroViewModel.swift:155-158`
 
@@ -194,7 +176,7 @@ if newValue == .active {
 
 ---
 
-### 11. Notification permission denial is silently ignored
+### 10. Notification permission denial is silently ignored
 
 **File:** `SessionFeedbackManager.swift:37`
 
@@ -211,7 +193,7 @@ UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
 
 ---
 
-### 12. No iPad keyboard shortcut support
+### 11. No iPad keyboard shortcut support
 
 **File:** `ContentView.swift`
 
@@ -232,7 +214,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ## P3 — Minor hardening
 
-### 13. `ringColors[0]` force-indexed without guard
+### 12. `ringColors[0]` force-indexed without guard
 
 **File:** `ContentView.swift:700`
 
@@ -244,7 +226,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ---
 
-### 14. Ring animation re-enable timing is fragile
+### 13. Ring animation re-enable timing is fragile
 
 **File:** `ContentView.swift:160-162`
 
@@ -263,7 +245,7 @@ withTransaction(transaction) {
 
 ---
 
-### 15. Unnecessary iOS 15 availability check
+### 14. Unnecessary iOS 15 availability check
 
 **File:** `SessionFeedbackManager.swift:52-55`
 
