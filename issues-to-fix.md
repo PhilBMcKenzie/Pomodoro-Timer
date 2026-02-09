@@ -6,19 +6,7 @@ Fragility and reliability issues identified across device form factors and iOS c
 
 ## P3 — Minor hardening
 
-### 1. `ringColors[0]` force-indexed without guard
-
-**File:** `ContentView.swift:700`
-
-**Problem:** `session.ringColors[0]` is safe today (all cases return 2-element arrays) but is a latent crash if `ringColors` is ever modified to return an empty array.
-
-**Recommended fix:** Use `session.ringColors.first ?? .accentColor` for defensive access.
-
-- [ ] Fixed
-
----
-
-### 2. Ring animation re-enable timing is fragile
+### 1. Ring animation re-enable timing is fragile
 
 **File:** `ContentView.swift:160-162`
 
@@ -37,7 +25,7 @@ withTransaction(transaction) {
 
 ---
 
-### 3. Unnecessary iOS 15 availability check
+### 2. Unnecessary iOS 15 availability check
 
 **File:** `SessionFeedbackManager.swift:52-55`
 
