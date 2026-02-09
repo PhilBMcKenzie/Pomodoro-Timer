@@ -6,26 +6,7 @@ Fragility and reliability issues identified across device form factors and iOS c
 
 ## P3 — Minor hardening
 
-### 1. Ring animation re-enable timing is fragile
-
-**File:** `ContentView.swift:160-162`
-
-**Problem:** `animateRing` is set to `false`, state is synced, then `DispatchQueue.main.async { animateRing = true }` re-enables animation on the next run loop pass. This relies on SwiftUI processing the `false` state before the `true` arrives — undocumented timing behaviour that could fail under main-thread congestion.
-
-**Recommended fix:** Use a brief `Task.sleep` or `.transaction` modifier to explicitly suppress animation during the sync rather than toggling a boolean across run loop iterations:
-```swift
-var transaction = Transaction()
-transaction.disablesAnimations = true
-withTransaction(transaction) {
-    viewModel.syncAfterForeground()
-}
-```
-
-- [ ] Fixed
-
----
-
-### 2. Unnecessary iOS 15 availability check
+### 1. Unnecessary iOS 15 availability check
 
 **File:** `SessionFeedbackManager.swift:52-55`
 

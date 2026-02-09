@@ -26,7 +26,6 @@ struct ContentView: View {
     @State private var cycleCompletionCelebrationVisible = false
     @State private var cycleCompletionCelebrationBurst = false
     @State private var cycleCompletionCelebrationID = 0
-    @State private var animateRing = true
     @State private var lastMessageRefreshBucket = 0
     @State private var showingNotificationDeniedAlert = false
     @ScaledMetric(relativeTo: .title) private var sessionTitleSize: CGFloat = 40
@@ -169,16 +168,16 @@ struct ContentView: View {
         }
         .onChange(of: scenePhase) { _, newValue in
             if newValue == .active {
-                animateRing = false
                 feedbackManager.cancelScheduledSessionEndNotification()
                 feedbackManager.refreshNotificationAuthorizationStatus()
-                if feedbackManager.pendingNotificationAction != nil {
-                    handlePendingNotificationActionIfNeeded()
-                } else {
-                    viewModel.syncAfterForeground()
-                }
-                DispatchQueue.main.async {
-                    animateRing = true
+                var transaction = Transaction()
+                transaction.disablesAnimations = true
+                withTransaction(transaction) {
+                    if feedbackManager.pendingNotificationAction != nil {
+                        handlePendingNotificationActionIfNeeded()
+                    } else {
+                        viewModel.syncAfterForeground()
+                    }
                 }
             } else if newValue == .inactive || newValue == .background {
                 if shouldScheduleSessionEndNotification {
@@ -238,7 +237,7 @@ struct ContentView: View {
                 session: viewModel.currentSession,
                 lineWidth: ringLineWidth
             )
-            .animation(animateRing ? .linear(duration: 0.95) : nil, value: viewModel.remainingProgress)
+            .animation(.linear(duration: 0.95), value: viewModel.remainingProgress)
 
             Text("\(viewModel.cyclePosition)")
                 .font(.system(size: diameter * 0.85, weight: .bold, design: .rounded))
