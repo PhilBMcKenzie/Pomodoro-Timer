@@ -107,7 +107,7 @@ final class PomodoroViewModel: ObservableObject {
         return "Pomodoro \(position) of 4"
     }
 
-    private var timer: Timer?
+    private var timerCancellable: AnyCancellable?
     private var sessionEndDate: Date?
 
     init(durations: PomodoroDurations = .default) {
@@ -151,28 +151,27 @@ final class PomodoroViewModel: ObservableObject {
         isRunning = true
         sessionEndDate = Date().addingTimeInterval(TimeInterval(remainingSeconds))
 
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            Task { @MainActor in
+        timerCancellable?.cancel()
+        timerCancellable = Timer.publish(every: 1, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
                 self?.tick()
             }
-        }
-        RunLoop.current.add(timer!, forMode: .common)
     }
 
     func pause() {
         guard isRunning else { return }
 
         syncRemainingTime()
-        timer?.invalidate()
-        timer = nil
+        timerCancellable?.cancel()
+        timerCancellable = nil
         sessionEndDate = nil
         isRunning = false
     }
 
     func resetCurrentSession() {
-        timer?.invalidate()
-        timer = nil
+        timerCancellable?.cancel()
+        timerCancellable = nil
         isRunning = false
         sessionEndDate = nil
         clearCycleCompletionState()
@@ -180,8 +179,8 @@ final class PomodoroViewModel: ObservableObject {
     }
 
     func resetCycle() {
-        timer?.invalidate()
-        timer = nil
+        timerCancellable?.cancel()
+        timerCancellable = nil
         isRunning = false
         sessionEndDate = nil
         currentSession = .focus
@@ -191,8 +190,8 @@ final class PomodoroViewModel: ObservableObject {
     }
 
     func skipSession() {
-        timer?.invalidate()
-        timer = nil
+        timerCancellable?.cancel()
+        timerCancellable = nil
         isRunning = false
         sessionEndDate = nil
         clearCycleCompletionState()
@@ -227,8 +226,8 @@ final class PomodoroViewModel: ObservableObject {
     }
 
     private func startSession(_ session: PomodoroSession) {
-        timer?.invalidate()
-        timer = nil
+        timerCancellable?.cancel()
+        timerCancellable = nil
         isRunning = false
         sessionEndDate = nil
         clearCycleCompletionState()
@@ -244,8 +243,8 @@ final class PomodoroViewModel: ObservableObject {
 
         if remainingSeconds == 0 {
             let completedSession = currentSession
-            timer?.invalidate()
-            timer = nil
+            timerCancellable?.cancel()
+            timerCancellable = nil
             isRunning = false
             sessionEndDate = nil
             let didCompleteFullCycle = advanceToNextSession(creditFocusSession: true)

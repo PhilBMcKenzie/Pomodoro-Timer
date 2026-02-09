@@ -6,21 +6,7 @@ Fragility and reliability issues identified across device form factors and iOS c
 
 ## P2 — Edge cases that reduce reliability
 
-### 1. Timer callback creates unstructured Task on every tick
-
-**File:** `PomodoroViewModel.swift:155-158`
-
-**Problem:** Each Timer fire creates `Task { @MainActor in self?.tick() }`. These Tasks are untracked. Under extreme main-thread pressure, multiple tick Tasks could queue and execute, though the Date-based sync makes this functionally harmless. It is still unnecessary overhead.
-
-**Recommended fix:** Since the ViewModel is already `@MainActor`, consider using `Timer.publish` with a Combine pipeline or an `AsyncStream`-based timer that naturally runs on the MainActor without spawning new Tasks each second.
-
-**Verification:** Optional — profile with Instruments to confirm no Task accumulation under normal use.
-
-- [ ] Fixed
-
----
-
-### 2. Notification permission denial is silently ignored
+### 1. Notification permission denial is silently ignored
 
 **File:** `SessionFeedbackManager.swift:37`
 
@@ -37,7 +23,7 @@ UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
 
 ---
 
-### 3. No iPad keyboard shortcut support
+### 2. No iPad keyboard shortcut support
 
 **File:** `ContentView.swift`
 
@@ -58,7 +44,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ## P3 — Minor hardening
 
-### 4. `ringColors[0]` force-indexed without guard
+### 3. `ringColors[0]` force-indexed without guard
 
 **File:** `ContentView.swift:700`
 
@@ -70,7 +56,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ---
 
-### 5. Ring animation re-enable timing is fragile
+### 4. Ring animation re-enable timing is fragile
 
 **File:** `ContentView.swift:160-162`
 
@@ -89,7 +75,7 @@ withTransaction(transaction) {
 
 ---
 
-### 6. Unnecessary iOS 15 availability check
+### 5. Unnecessary iOS 15 availability check
 
 **File:** `SessionFeedbackManager.swift:52-55`
 
