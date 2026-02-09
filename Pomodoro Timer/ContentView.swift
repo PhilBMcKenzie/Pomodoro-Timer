@@ -29,7 +29,6 @@ struct ContentView: View {
     @State private var animateRing = true
     @State private var lastMessageRefreshBucket = 0
     @Environment(\.scenePhase) private var scenePhase
-    private let secondaryButtonWidth: CGFloat = 150
 
     init(feedbackManager: SessionFeedbackManager = SessionFeedbackManager()) {
         _feedbackManager = ObservedObject(wrappedValue: feedbackManager)
@@ -281,7 +280,7 @@ struct ContentView: View {
                     viewModel.resetCurrentSession()
                 } label: {
                     Text("Reset Session")
-                        .frame(width: secondaryButtonWidth)
+                        .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
@@ -291,7 +290,7 @@ struct ContentView: View {
                     viewModel.skipSession()
                 } label: {
                     Text("Skip Session")
-                        .frame(width: secondaryButtonWidth)
+                        .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
@@ -303,7 +302,7 @@ struct ContentView: View {
                     viewModel.resetCycle()
                 } label: {
                     Text("Reset Cycle")
-                        .frame(width: secondaryButtonWidth)
+                        .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
@@ -313,7 +312,7 @@ struct ContentView: View {
                     showingPreferences = true
                 } label: {
                     Text("Preferences")
-                        .frame(width: secondaryButtonWidth)
+                        .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
