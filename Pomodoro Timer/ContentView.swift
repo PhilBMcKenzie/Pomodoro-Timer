@@ -28,6 +28,7 @@ struct ContentView: View {
     @State private var cycleCompletionCelebrationID = 0
     @State private var animateRing = true
     @State private var lastMessageRefreshBucket = 0
+    @State private var showingNotificationDeniedAlert = false
     @ScaledMetric(relativeTo: .title) private var sessionTitleSize: CGFloat = 40
     @Environment(\.scenePhase) private var scenePhase
 
@@ -78,6 +79,16 @@ struct ContentView: View {
             }
         }
         .toolbar(.hidden, for: .navigationBar)
+        .alert("Notifications Disabled", isPresented: $showingNotificationDeniedAlert) {
+            Button("Open Settings") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("Not Now", role: .cancel) {}
+        } message: {
+            Text("Enable notifications in Settings to be alerted when a session ends while the app is in the background.")
+        }
         .sheet(isPresented: $showingPreferences) {
             TimerPreferencesView(
                 focusMinutes: $focusMinutes,
@@ -160,6 +171,7 @@ struct ContentView: View {
             if newValue == .active {
                 animateRing = false
                 feedbackManager.cancelScheduledSessionEndNotification()
+                feedbackManager.refreshNotificationAuthorizationStatus()
                 if feedbackManager.pendingNotificationAction != nil {
                     handlePendingNotificationActionIfNeeded()
                 } else {
@@ -168,11 +180,17 @@ struct ContentView: View {
                 DispatchQueue.main.async {
                     animateRing = true
                 }
-            } else if shouldScheduleSessionEndNotification {
-                feedbackManager.scheduleSessionEndNotification(
-                    for: viewModel.currentSession,
-                    secondsRemaining: viewModel.remainingSeconds
-                )
+            } else if newValue == .inactive || newValue == .background {
+                if shouldScheduleSessionEndNotification {
+                    if feedbackManager.notificationsDenied {
+                        showingNotificationDeniedAlert = true
+                    } else {
+                        feedbackManager.scheduleSessionEndNotification(
+                            for: viewModel.currentSession,
+                            secondsRemaining: viewModel.remainingSeconds
+                        )
+                    }
+                }
             }
         }
         .onChange(of: feedbackManager.pendingNotificationAction) { _, _ in

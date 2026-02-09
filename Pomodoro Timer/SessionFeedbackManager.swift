@@ -18,6 +18,7 @@ final class SessionFeedbackManager: NSObject, ObservableObject {
     private var didCheckAuthorization = false
     private var audioPlayer: AVAudioPlayer?
     @Published private(set) var pendingNotificationAction: NotificationAction?
+    @Published private(set) var notificationsDenied = false
     private let cycleCompletedSoundFileName = "cycle-complete-fanfare"
 
     override init() {
@@ -32,9 +33,32 @@ final class SessionFeedbackManager: NSObject, ObservableObject {
 
         notificationCenter.getNotificationSettings { [weak self] settings in
             guard let self else { return }
-            guard settings.authorizationStatus == .notDetermined else { return }
 
-            self.notificationCenter.requestAuthorization(options: [.alert, .sound]) { _, _ in }
+            switch settings.authorizationStatus {
+            case .notDetermined:
+                self.notificationCenter.requestAuthorization(options: [.alert, .sound]) { granted, _ in
+                    Task { @MainActor in
+                        self.notificationsDenied = !granted
+                    }
+                }
+            case .denied:
+                Task { @MainActor in
+                    self.notificationsDenied = true
+                }
+            default:
+                Task { @MainActor in
+                    self.notificationsDenied = false
+                }
+            }
+        }
+    }
+
+    func refreshNotificationAuthorizationStatus() {
+        notificationCenter.getNotificationSettings { [weak self] settings in
+            guard let self else { return }
+            Task { @MainActor in
+                self.notificationsDenied = (settings.authorizationStatus == .denied)
+            }
         }
     }
 

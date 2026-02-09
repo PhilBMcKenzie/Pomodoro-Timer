@@ -6,24 +6,7 @@ Fragility and reliability issues identified across device form factors and iOS c
 
 ## P2 — Edge cases that reduce reliability
 
-### 1. Notification permission denial is silently ignored
-
-**File:** `SessionFeedbackManager.swift:37`
-
-**Problem:** `requestAuthorization` completion handler is `{ _, _ in }`. If the user denies notification permission, the app silently fails to schedule session-end notifications when backgrounded. There is no UI to inform the user or guide them to Settings to re-enable.
-
-**Recommended fix:** Track authorisation status. When the user backgrounds the app with a running timer and notifications are denied, show a subtle banner or alert explaining that session-end notifications require permission, with a button that opens the app's Settings page:
-```swift
-UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
-```
-
-**Verification:** Deny notification permission in Settings, background the app with a running timer, and confirm the user sees guidance.
-
-- [ ] Fixed
-
----
-
-### 2. No iPad keyboard shortcut support
+### 1. No iPad keyboard shortcut support
 
 **File:** `ContentView.swift`
 
@@ -44,7 +27,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ## P3 — Minor hardening
 
-### 3. `ringColors[0]` force-indexed without guard
+### 2. `ringColors[0]` force-indexed without guard
 
 **File:** `ContentView.swift:700`
 
@@ -56,7 +39,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ---
 
-### 4. Ring animation re-enable timing is fragile
+### 3. Ring animation re-enable timing is fragile
 
 **File:** `ContentView.swift:160-162`
 
@@ -75,7 +58,7 @@ withTransaction(transaction) {
 
 ---
 
-### 5. Unnecessary iOS 15 availability check
+### 4. Unnecessary iOS 15 availability check
 
 **File:** `SessionFeedbackManager.swift:52-55`
 
