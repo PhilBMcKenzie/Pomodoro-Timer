@@ -6,21 +6,7 @@ Fragility and reliability issues identified across device form factors and iOS c
 
 ## P2 — Edge cases that reduce reliability
 
-### 1. Unstructured Tasks may leak if view identity changes
-
-**File:** `ContentView.swift:24, 28`
-
-**Problem:** `sessionCueResetTask` and `cycleCompletionCelebrationTask` are `@State Task` objects cancelled only in `onDisappear`. If SwiftUI recreates the view due to an identity change in a parent (without calling `onDisappear` on the old instance), the running Tasks are dropped without cancellation. In practice this is unlikely in this app's simple hierarchy, but it is a latent fragility.
-
-**Recommended fix:** Use `.task(id:)` modifier instead of manually managing Task lifecycle, or wrap the cancellation in the Task's own `onCancel` handler. Alternatively, accept the risk given the app's flat view hierarchy and leave a code comment noting the assumption.
-
-**Verification:** Low-priority — only relevant if the view hierarchy becomes more complex.
-
-- [ ] Fixed
-
----
-
-### 2. Timer callback creates unstructured Task on every tick
+### 1. Timer callback creates unstructured Task on every tick
 
 **File:** `PomodoroViewModel.swift:155-158`
 
@@ -34,7 +20,7 @@ Fragility and reliability issues identified across device form factors and iOS c
 
 ---
 
-### 3. Notification permission denial is silently ignored
+### 2. Notification permission denial is silently ignored
 
 **File:** `SessionFeedbackManager.swift:37`
 
@@ -51,7 +37,7 @@ UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
 
 ---
 
-### 4. No iPad keyboard shortcut support
+### 3. No iPad keyboard shortcut support
 
 **File:** `ContentView.swift`
 
@@ -72,7 +58,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ## P3 — Minor hardening
 
-### 5. `ringColors[0]` force-indexed without guard
+### 4. `ringColors[0]` force-indexed without guard
 
 **File:** `ContentView.swift:700`
 
@@ -84,7 +70,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ---
 
-### 6. Ring animation re-enable timing is fragile
+### 5. Ring animation re-enable timing is fragile
 
 **File:** `ContentView.swift:160-162`
 
@@ -103,7 +89,7 @@ withTransaction(transaction) {
 
 ---
 
-### 7. Unnecessary iOS 15 availability check
+### 6. Unnecessary iOS 15 availability check
 
 **File:** `SessionFeedbackManager.swift:52-55`
 

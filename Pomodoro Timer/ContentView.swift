@@ -21,11 +21,11 @@ struct ContentView: View {
     @ObservedObject private var feedbackManager: SessionFeedbackManager
     @State private var showingPreferences = false
     @State private var sessionChangeCueActive = false
-    @State private var sessionCueResetTask: Task<Void, Never>?
+    @State private var sessionCueResetID = 0
     @State private var activeCoachingMessage = ""
     @State private var cycleCompletionCelebrationVisible = false
     @State private var cycleCompletionCelebrationBurst = false
-    @State private var cycleCompletionCelebrationTask: Task<Void, Never>?
+    @State private var cycleCompletionCelebrationID = 0
     @State private var animateRing = true
     @State private var lastMessageRefreshBucket = 0
     @ScaledMetric(relativeTo: .title) private var sessionTitleSize: CGFloat = 40
@@ -178,11 +178,25 @@ struct ContentView: View {
         .onChange(of: feedbackManager.pendingNotificationAction) { _, _ in
             handlePendingNotificationActionIfNeeded()
         }
-        .onDisappear {
-            sessionCueResetTask?.cancel()
-            sessionCueResetTask = nil
-            cycleCompletionCelebrationTask?.cancel()
-            cycleCompletionCelebrationTask = nil
+        .task(id: sessionCueResetID) {
+            guard sessionCueResetID > 0 else { return }
+            try? await Task.sleep(nanoseconds: 260_000_000)
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeOut(duration: 0.22)) {
+                sessionChangeCueActive = false
+            }
+        }
+        .task(id: cycleCompletionCelebrationID) {
+            guard cycleCompletionCelebrationID > 0 else { return }
+            withAnimation(.easeOut(duration: 1.1)) {
+                cycleCompletionCelebrationBurst = true
+            }
+            try? await Task.sleep(nanoseconds: 1_900_000_000)
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeOut(duration: 0.25)) {
+                cycleCompletionCelebrationVisible = false
+                cycleCompletionCelebrationBurst = false
+            }
         }
     }
 
@@ -360,41 +374,18 @@ struct ContentView: View {
     }
 
     private func triggerSessionTransitionCue() {
-        sessionCueResetTask?.cancel()
         withAnimation(.spring(response: 0.26, dampingFraction: 0.72)) {
             sessionChangeCueActive = true
         }
-
-        sessionCueResetTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 260_000_000)
-            guard !Task.isCancelled else { return }
-            withAnimation(.easeOut(duration: 0.22)) {
-                sessionChangeCueActive = false
-            }
-        }
+        sessionCueResetID += 1
     }
 
     private func triggerCycleCompletionCelebration() {
-        cycleCompletionCelebrationTask?.cancel()
         cycleCompletionCelebrationBurst = false
-
         withAnimation(.spring(response: 0.28, dampingFraction: 0.76)) {
             cycleCompletionCelebrationVisible = true
         }
-
-        cycleCompletionCelebrationTask = Task { @MainActor in
-            withAnimation(.easeOut(duration: 1.1)) {
-                cycleCompletionCelebrationBurst = true
-            }
-
-            try? await Task.sleep(nanoseconds: 1_900_000_000)
-            guard !Task.isCancelled else { return }
-
-            withAnimation(.easeOut(duration: 0.25)) {
-                cycleCompletionCelebrationVisible = false
-                cycleCompletionCelebrationBurst = false
-            }
-        }
+        cycleCompletionCelebrationID += 1
     }
 
     private func initializeCoachingMessage() {
