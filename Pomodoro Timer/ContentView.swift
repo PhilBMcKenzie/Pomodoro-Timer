@@ -160,8 +160,11 @@ struct ContentView: View {
             if newValue == .active {
                 animateRing = false
                 feedbackManager.cancelScheduledSessionEndNotification()
-                viewModel.syncAfterForeground()
-                handlePendingNotificationActionIfNeeded()
+                if feedbackManager.pendingNotificationAction != nil {
+                    handlePendingNotificationActionIfNeeded()
+                } else {
+                    viewModel.syncAfterForeground()
+                }
                 DispatchQueue.main.async {
                     animateRing = true
                 }

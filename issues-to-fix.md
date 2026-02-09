@@ -6,33 +6,7 @@ Fragility and reliability issues identified across device form factors and iOS c
 
 ## P2 — Edge cases that reduce reliability
 
-### 1. Race between foreground sync and notification action handling
-
-**File:** `ContentView.swift:154-169`
-
-**Problem:** When the app returns to foreground, `syncAfterForeground()` calls `tick()` which may detect session completion (remainingSeconds == 0), increment `sessionCompletionCount`, and trigger sound/haptic feedback via the `onChange` handler. Then `handlePendingNotificationActionIfNeeded()` immediately starts a new session from the notification action. The completion feedback (sound, haptic, visual cue) is effectively lost because the new session starts instantly.
-
-**Recommended fix:** Check whether a notification action is pending *before* running `syncAfterForeground()`. If an action is pending, let the action handler drive the state transition instead of the tick:
-```swift
-if newValue == .active {
-    animateRing = false
-    feedbackManager.cancelScheduledSessionEndNotification()
-    if feedbackManager.pendingNotificationAction != nil {
-        handlePendingNotificationActionIfNeeded()
-    } else {
-        viewModel.syncAfterForeground()
-    }
-    DispatchQueue.main.async { animateRing = true }
-}
-```
-
-**Verification:** Background the app during a running session, wait for it to complete, tap a notification action, and confirm the correct session starts without double-feedback.
-
-- [ ] Fixed
-
----
-
-### 2. Unstructured Tasks may leak if view identity changes
+### 1. Unstructured Tasks may leak if view identity changes
 
 **File:** `ContentView.swift:24, 28`
 
@@ -46,7 +20,7 @@ if newValue == .active {
 
 ---
 
-### 3. Timer callback creates unstructured Task on every tick
+### 2. Timer callback creates unstructured Task on every tick
 
 **File:** `PomodoroViewModel.swift:155-158`
 
@@ -60,7 +34,7 @@ if newValue == .active {
 
 ---
 
-### 4. Notification permission denial is silently ignored
+### 3. Notification permission denial is silently ignored
 
 **File:** `SessionFeedbackManager.swift:37`
 
@@ -77,7 +51,7 @@ UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
 
 ---
 
-### 5. No iPad keyboard shortcut support
+### 4. No iPad keyboard shortcut support
 
 **File:** `ContentView.swift`
 
@@ -98,7 +72,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ## P3 — Minor hardening
 
-### 6. `ringColors[0]` force-indexed without guard
+### 5. `ringColors[0]` force-indexed without guard
 
 **File:** `ContentView.swift:700`
 
@@ -110,7 +84,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ---
 
-### 7. Ring animation re-enable timing is fragile
+### 6. Ring animation re-enable timing is fragile
 
 **File:** `ContentView.swift:160-162`
 
@@ -129,7 +103,7 @@ withTransaction(transaction) {
 
 ---
 
-### 8. Unnecessary iOS 15 availability check
+### 7. Unnecessary iOS 15 availability check
 
 **File:** `SessionFeedbackManager.swift:52-55`
 
