@@ -131,7 +131,7 @@ final class SessionFeedbackManager: NSObject, ObservableObject {
     private func configureAudioSession() {
         let session = AVAudioSession.sharedInstance()
         do {
-            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
+            try session.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
             try session.setActive(true)
         } catch {
             print("[SessionFeedbackManager] Audio session configuration failed: \(error)")

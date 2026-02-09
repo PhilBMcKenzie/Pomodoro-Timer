@@ -4,29 +4,9 @@ Fragility and reliability issues identified across device form factors and iOS c
 
 ---
 
-## P0 — Will break on certain devices/configurations
-
-### 1. Sounds play when device is in Silent Mode
-
-**File:** `SessionFeedbackManager.swift:134`
-
-**Problem:** The audio session uses `.playback` category, which ignores the hardware silent switch. Timer completion sounds will play at full volume even when the user has silenced their phone. This is unexpected behaviour for a utility app and a common source of negative App Store reviews.
-
-**Recommended fix:** Change the audio session category from `.playback` to `.ambient`:
-```swift
-try session.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
-```
-`.ambient` respects the silent switch and mixes with other audio. If the intent is to allow background audio playback (unlikely for a timer sound), use `.playback` only during active playback and switch back.
-
-**Verification:** Toggle the silent switch on a physical device and confirm sounds are suppressed.
-
-- [ ] Fixed
-
----
-
 ## P1 — Likely to cause problems on real-world devices
 
-### 2. Audio session is permanently activated
+### 1. Audio session is permanently activated
 
 **File:** `SessionFeedbackManager.swift:131-139`
 
@@ -44,7 +24,7 @@ Move `configureAudioSession()` out of `init()` and into the `playSound` path.
 
 ---
 
-### 3. No Dynamic Type / accessibility text scaling support
+### 2. No Dynamic Type / accessibility text scaling support
 
 **File:** `ContentView.swift` (throughout)
 
@@ -62,7 +42,7 @@ For less critical text, use semantic font styles (`.headline`, `.subheadline`, `
 
 ---
 
-### 4. Timer ring and text look disproportionately small on iPad
+### 3. Timer ring and text look disproportionately small on iPad
 
 **File:** `ContentView.swift:66`
 
@@ -80,7 +60,7 @@ Also scale the font sizes proportionally, or set device-class-appropriate base s
 
 ---
 
-### 5. Concurrency safety / Swift 6 readiness
+### 4. Concurrency safety / Swift 6 readiness
 
 **File:** `SessionFeedbackManager.swift`
 
@@ -103,7 +83,7 @@ Audit for any other non-main-actor access paths.
 
 ---
 
-### 6. Celebration overlay burst radius is not device-relative
+### 5. Celebration overlay burst radius is not device-relative
 
 **File:** `ContentView.swift:712`
 
@@ -122,7 +102,7 @@ let radius: CGFloat = isBursting ? diameter * 0.55 : 16
 
 ## P2 — Edge cases that reduce reliability
 
-### 7. Race between foreground sync and notification action handling
+### 6. Race between foreground sync and notification action handling
 
 **File:** `ContentView.swift:154-169`
 
@@ -148,7 +128,7 @@ if newValue == .active {
 
 ---
 
-### 8. Unstructured Tasks may leak if view identity changes
+### 7. Unstructured Tasks may leak if view identity changes
 
 **File:** `ContentView.swift:24, 28`
 
@@ -162,7 +142,7 @@ if newValue == .active {
 
 ---
 
-### 9. Timer callback creates unstructured Task on every tick
+### 8. Timer callback creates unstructured Task on every tick
 
 **File:** `PomodoroViewModel.swift:155-158`
 
@@ -176,7 +156,7 @@ if newValue == .active {
 
 ---
 
-### 10. Notification permission denial is silently ignored
+### 9. Notification permission denial is silently ignored
 
 **File:** `SessionFeedbackManager.swift:37`
 
@@ -193,7 +173,7 @@ UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
 
 ---
 
-### 11. No iPad keyboard shortcut support
+### 10. No iPad keyboard shortcut support
 
 **File:** `ContentView.swift`
 
@@ -214,7 +194,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ## P3 — Minor hardening
 
-### 12. `ringColors[0]` force-indexed without guard
+### 11. `ringColors[0]` force-indexed without guard
 
 **File:** `ContentView.swift:700`
 
@@ -226,7 +206,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ---
 
-### 13. Ring animation re-enable timing is fragile
+### 12. Ring animation re-enable timing is fragile
 
 **File:** `ContentView.swift:160-162`
 
@@ -245,7 +225,7 @@ withTransaction(transaction) {
 
 ---
 
-### 14. Unnecessary iOS 15 availability check
+### 13. Unnecessary iOS 15 availability check
 
 **File:** `SessionFeedbackManager.swift:52-55`
 
