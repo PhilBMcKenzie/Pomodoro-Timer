@@ -6,25 +6,7 @@ Fragility and reliability issues identified across device form factors and iOS c
 
 ## P1 — Likely to cause problems on real-world devices
 
-### 1. No Dynamic Type / accessibility text scaling support
-
-**File:** `ContentView.swift` (throughout)
-
-**Problem:** All text sizes are hardcoded (`size: 56`, `size: 40`, `size: 15`, etc.). Users who enable larger text in iOS Accessibility settings get no benefit. Apple's App Store review guidelines and Human Interface Guidelines expect apps to support Dynamic Type. On larger settings, the fixed layout cannot accommodate the system expectation that text should grow.
-
-**Recommended fix:** For the primary UI labels (session title, time display), use `@ScaledMetric` to define base sizes that scale with the user's text size preference:
-```swift
-@ScaledMetric(relativeTo: .largeTitle) private var timerFontSize: CGFloat = 56
-```
-For less critical text, use semantic font styles (`.headline`, `.subheadline`, `.footnote`) which scale automatically. Combine with the geometry-proportional layout from issue #2 to set upper bounds so scaled text doesn't break the layout.
-
-**Verification:** Test with every Dynamic Type size in the Xcode accessibility inspector or via Settings > Accessibility > Larger Text.
-
-- [ ] Fixed
-
----
-
-### 2. Timer ring and text look disproportionately small on iPad
+### 1. Timer ring and text look disproportionately small on iPad
 
 **File:** `ContentView.swift:66`
 
@@ -42,7 +24,7 @@ Also scale the font sizes proportionally, or set device-class-appropriate base s
 
 ---
 
-### 3. Concurrency safety / Swift 6 readiness
+### 2. Concurrency safety / Swift 6 readiness
 
 **File:** `SessionFeedbackManager.swift`
 
@@ -65,7 +47,7 @@ Audit for any other non-main-actor access paths.
 
 ---
 
-### 4. Celebration overlay burst radius is not device-relative
+### 3. Celebration overlay burst radius is not device-relative
 
 **File:** `ContentView.swift:712`
 
@@ -84,7 +66,7 @@ let radius: CGFloat = isBursting ? diameter * 0.55 : 16
 
 ## P2 — Edge cases that reduce reliability
 
-### 5. Race between foreground sync and notification action handling
+### 4. Race between foreground sync and notification action handling
 
 **File:** `ContentView.swift:154-169`
 
@@ -110,7 +92,7 @@ if newValue == .active {
 
 ---
 
-### 6. Unstructured Tasks may leak if view identity changes
+### 5. Unstructured Tasks may leak if view identity changes
 
 **File:** `ContentView.swift:24, 28`
 
@@ -124,7 +106,7 @@ if newValue == .active {
 
 ---
 
-### 7. Timer callback creates unstructured Task on every tick
+### 6. Timer callback creates unstructured Task on every tick
 
 **File:** `PomodoroViewModel.swift:155-158`
 
@@ -138,7 +120,7 @@ if newValue == .active {
 
 ---
 
-### 8. Notification permission denial is silently ignored
+### 7. Notification permission denial is silently ignored
 
 **File:** `SessionFeedbackManager.swift:37`
 
@@ -155,7 +137,7 @@ UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
 
 ---
 
-### 9. No iPad keyboard shortcut support
+### 8. No iPad keyboard shortcut support
 
 **File:** `ContentView.swift`
 
@@ -176,7 +158,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ## P3 — Minor hardening
 
-### 10. `ringColors[0]` force-indexed without guard
+### 9. `ringColors[0]` force-indexed without guard
 
 **File:** `ContentView.swift:700`
 
@@ -188,7 +170,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ---
 
-### 11. Ring animation re-enable timing is fragile
+### 10. Ring animation re-enable timing is fragile
 
 **File:** `ContentView.swift:160-162`
 
@@ -207,7 +189,7 @@ withTransaction(transaction) {
 
 ---
 
-### 12. Unnecessary iOS 15 availability check
+### 11. Unnecessary iOS 15 availability check
 
 **File:** `SessionFeedbackManager.swift:52-55`
 

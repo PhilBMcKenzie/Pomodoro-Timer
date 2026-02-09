@@ -28,6 +28,7 @@ struct ContentView: View {
     @State private var cycleCompletionCelebrationTask: Task<Void, Never>?
     @State private var animateRing = true
     @State private var lastMessageRefreshBucket = 0
+    @ScaledMetric(relativeTo: .title) private var sessionTitleSize: CGFloat = 40
     @Environment(\.scenePhase) private var scenePhase
 
     init(feedbackManager: SessionFeedbackManager = SessionFeedbackManager()) {
@@ -184,7 +185,8 @@ struct ContentView: View {
     private var sessionHeaderView: some View {
         VStack(spacing: 8) {
             Text(sessionTitle)
-                .font(.system(size: 40, weight: .semibold, design: .rounded))
+                .font(.system(size: sessionTitleSize, weight: .semibold, design: .rounded))
+                .minimumScaleFactor(0.7)
                 .foregroundStyle(sessionChangeCueActive ? sessionAccentColor : Color.primary)
             Text(sessionSubtitle)
                 .font(.subheadline)
@@ -235,14 +237,16 @@ struct ContentView: View {
     private func timerTextContent(diameter: CGFloat, opacity: Double) -> some View {
         VStack(spacing: 10) {
             Text(viewModel.timeLabel)
-                .font(.system(size: 56, weight: .bold, design: .rounded))
+                .font(.system(size: diameter * 0.2, weight: .bold, design: .rounded))
                 .monospacedDigit()
+                .minimumScaleFactor(0.7)
                 .accessibilityLabel("Time remaining")
                 .opacity(opacity)
 
             if coachingStatementsEnabled {
                 Text(activeCoachingMessage)
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
+                    .fontDesign(.rounded)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
