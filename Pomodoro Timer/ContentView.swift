@@ -31,7 +31,7 @@ struct ContentView: View {
     @ScaledMetric(relativeTo: .title) private var sessionTitleSize: CGFloat = 40
     @Environment(\.scenePhase) private var scenePhase
 
-    init(feedbackManager: SessionFeedbackManager = SessionFeedbackManager()) {
+    init(feedbackManager: SessionFeedbackManager) {
         _feedbackManager = ObservedObject(wrappedValue: feedbackManager)
     }
 
@@ -870,5 +870,5 @@ private enum SessionCoachingMessages {
 }
 
 #Preview {
-    ContentView()
+    ContentView(feedbackManager: SessionFeedbackManager())
 }

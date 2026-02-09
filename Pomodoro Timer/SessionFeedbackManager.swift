@@ -4,6 +4,7 @@ import UIKit
 import UserNotifications
 import AVFoundation
 
+@MainActor
 final class SessionFeedbackManager: NSObject, ObservableObject {
     enum NotificationAction: String {
         case startFocus = "pomodoro.action.start.focus"
@@ -89,7 +90,8 @@ final class SessionFeedbackManager: NSObject, ObservableObject {
         let generator = UINotificationFeedbackGenerator()
         generator.prepare()
         generator.notificationOccurred(.success)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
+        Task {
+            try? await Task.sleep(nanoseconds: 180_000_000)
             let followUpGenerator = UINotificationFeedbackGenerator()
             followUpGenerator.prepare()
             followUpGenerator.notificationOccurred(.success)
@@ -199,7 +201,7 @@ extension SessionFeedbackManager: UNUserNotificationCenterDelegate {
             return
         }
 
-        DispatchQueue.main.async {
+        Task { @MainActor in
             self.pendingNotificationAction = action
         }
 

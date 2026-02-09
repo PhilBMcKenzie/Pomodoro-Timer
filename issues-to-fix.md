@@ -6,30 +6,7 @@ Fragility and reliability issues identified across device form factors and iOS c
 
 ## P1 — Likely to cause problems on real-world devices
 
-### 1. Concurrency safety / Swift 6 readiness
-
-**File:** `SessionFeedbackManager.swift`
-
-**Problem:** `SessionFeedbackManager` is a non-isolated `NSObject` with `@Published` properties. `pendingNotificationAction` is mutated from `DispatchQueue.main.async` (line 199) in the notification delegate callback and read from `@MainActor` context in `ContentView`. This works under Swift 5 concurrency but will produce data race warnings/errors under Swift 6 strict concurrency checking. The `consumePendingNotificationAction()` method is also not protected against concurrent access.
-
-**Recommended fix:** Mark `SessionFeedbackManager` as `@MainActor`. Change the `nonisolated` delegate methods to dispatch via `MainActor.run {}` instead of `DispatchQueue.main.async`:
-```swift
-nonisolated func userNotificationCenter(...) {
-    Task { @MainActor in
-        self.pendingNotificationAction = action
-    }
-    completionHandler()
-}
-```
-Audit for any other non-main-actor access paths.
-
-**Verification:** Enable strict concurrency checking in build settings (`SWIFT_STRICT_CONCURRENCY = complete`) and confirm no warnings.
-
-- [ ] Fixed
-
----
-
-### 2. Celebration overlay burst radius is not device-relative
+### 1. Celebration overlay burst radius is not device-relative
 
 **File:** `ContentView.swift:712`
 
@@ -48,7 +25,7 @@ let radius: CGFloat = isBursting ? diameter * 0.55 : 16
 
 ## P2 — Edge cases that reduce reliability
 
-### 3. Race between foreground sync and notification action handling
+### 2. Race between foreground sync and notification action handling
 
 **File:** `ContentView.swift:154-169`
 
@@ -74,7 +51,7 @@ if newValue == .active {
 
 ---
 
-### 4. Unstructured Tasks may leak if view identity changes
+### 3. Unstructured Tasks may leak if view identity changes
 
 **File:** `ContentView.swift:24, 28`
 
@@ -88,7 +65,7 @@ if newValue == .active {
 
 ---
 
-### 5. Timer callback creates unstructured Task on every tick
+### 4. Timer callback creates unstructured Task on every tick
 
 **File:** `PomodoroViewModel.swift:155-158`
 
@@ -102,7 +79,7 @@ if newValue == .active {
 
 ---
 
-### 6. Notification permission denial is silently ignored
+### 5. Notification permission denial is silently ignored
 
 **File:** `SessionFeedbackManager.swift:37`
 
@@ -119,7 +96,7 @@ UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
 
 ---
 
-### 7. No iPad keyboard shortcut support
+### 6. No iPad keyboard shortcut support
 
 **File:** `ContentView.swift`
 
@@ -140,7 +117,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ## P3 — Minor hardening
 
-### 8. `ringColors[0]` force-indexed without guard
+### 7. `ringColors[0]` force-indexed without guard
 
 **File:** `ContentView.swift:700`
 
@@ -152,7 +129,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ---
 
-### 9. Ring animation re-enable timing is fragile
+### 8. Ring animation re-enable timing is fragile
 
 **File:** `ContentView.swift:160-162`
 
@@ -171,7 +148,7 @@ withTransaction(transaction) {
 
 ---
 
-### 10. Unnecessary iOS 15 availability check
+### 9. Unnecessary iOS 15 availability check
 
 **File:** `SessionFeedbackManager.swift:52-55`
 
