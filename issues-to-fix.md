@@ -6,25 +6,7 @@ Fragility and reliability issues identified across device form factors and iOS c
 
 ## P1 — Likely to cause problems on real-world devices
 
-### 1. Timer ring and text look disproportionately small on iPad
-
-**File:** `ContentView.swift:66`
-
-**Problem:** Portrait mode uses a fixed 280pt ring. On an iPad Pro 12.9" (1024pt wide, 1366pt tall), the ring fills ~27% of the width. The 56pt time label is similarly tiny relative to the screen. The app technically works but looks like a scaled-up iPhone app rather than a native iPad experience.
-
-**Recommended fix:** Scale the ring diameter based on available geometry for both portrait and landscape:
-```swift
-let portraitRingDiameter = min(480, min(geometry.size.width, geometry.size.height) * 0.55)
-```
-Also scale the font sizes proportionally, or set device-class-appropriate base sizes using `horizontalSizeClass`.
-
-**Verification:** Run on iPad Pro 12.9" and iPad mini simulators in both orientations. The ring should look proportional on both.
-
-- [ ] Fixed
-
----
-
-### 2. Concurrency safety / Swift 6 readiness
+### 1. Concurrency safety / Swift 6 readiness
 
 **File:** `SessionFeedbackManager.swift`
 
@@ -47,7 +29,7 @@ Audit for any other non-main-actor access paths.
 
 ---
 
-### 3. Celebration overlay burst radius is not device-relative
+### 2. Celebration overlay burst radius is not device-relative
 
 **File:** `ContentView.swift:712`
 
@@ -66,7 +48,7 @@ let radius: CGFloat = isBursting ? diameter * 0.55 : 16
 
 ## P2 — Edge cases that reduce reliability
 
-### 4. Race between foreground sync and notification action handling
+### 3. Race between foreground sync and notification action handling
 
 **File:** `ContentView.swift:154-169`
 
@@ -92,7 +74,7 @@ if newValue == .active {
 
 ---
 
-### 5. Unstructured Tasks may leak if view identity changes
+### 4. Unstructured Tasks may leak if view identity changes
 
 **File:** `ContentView.swift:24, 28`
 
@@ -106,7 +88,7 @@ if newValue == .active {
 
 ---
 
-### 6. Timer callback creates unstructured Task on every tick
+### 5. Timer callback creates unstructured Task on every tick
 
 **File:** `PomodoroViewModel.swift:155-158`
 
@@ -120,7 +102,7 @@ if newValue == .active {
 
 ---
 
-### 7. Notification permission denial is silently ignored
+### 6. Notification permission denial is silently ignored
 
 **File:** `SessionFeedbackManager.swift:37`
 
@@ -137,7 +119,7 @@ UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
 
 ---
 
-### 8. No iPad keyboard shortcut support
+### 7. No iPad keyboard shortcut support
 
 **File:** `ContentView.swift`
 
@@ -158,7 +140,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ## P3 — Minor hardening
 
-### 9. `ringColors[0]` force-indexed without guard
+### 8. `ringColors[0]` force-indexed without guard
 
 **File:** `ContentView.swift:700`
 
@@ -170,7 +152,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ---
 
-### 10. Ring animation re-enable timing is fragile
+### 9. Ring animation re-enable timing is fragile
 
 **File:** `ContentView.swift:160-162`
 
@@ -189,7 +171,7 @@ withTransaction(transaction) {
 
 ---
 
-### 11. Unnecessary iOS 15 availability check
+### 10. Unnecessary iOS 15 availability check
 
 **File:** `SessionFeedbackManager.swift:52-55`
 

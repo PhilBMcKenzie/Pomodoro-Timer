@@ -42,7 +42,7 @@ struct ContentView: View {
                 let contentPadding: CGFloat = 20
                 let portraitRingDiameter = max(
                     160,
-                    min(280, geometry.size.height * 0.38)
+                    min(480, geometry.size.height * 0.38)
                 )
                 let landscapeRingDiameter = max(
                     200,
@@ -51,6 +51,7 @@ struct ContentView: View {
                         geometry.size.width * 0.42
                     )
                 )
+                let ringLineWidth: CGFloat = geometry.size.height > 900 ? 28 : 20
 
                 Group {
                     if isLandscape {
@@ -67,7 +68,7 @@ struct ContentView: View {
                     } else {
                         VStack(spacing: 28) {
                             sessionHeaderView
-                            timerRingView(diameter: portraitRingDiameter, ringLineWidth: 20)
+                            timerRingView(diameter: portraitRingDiameter, ringLineWidth: ringLineWidth)
                             controlsAndInfoView
                         }
                     }
