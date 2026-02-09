@@ -73,10 +73,8 @@ final class SessionFeedbackManager: NSObject, ObservableObject {
         content.categoryIdentifier = sessionEndCategoryIdentifier
         content.threadIdentifier = "pomodoro.timer"
         content.sound = .default
-        if #available(iOS 15.0, *) {
-            content.interruptionLevel = .timeSensitive
-            content.relevanceScore = 1
-        }
+        content.interruptionLevel = .timeSensitive
+        content.relevanceScore = 1
 
         let trigger = UNTimeIntervalNotificationTrigger(
             timeInterval: TimeInterval(secondsRemaining),
