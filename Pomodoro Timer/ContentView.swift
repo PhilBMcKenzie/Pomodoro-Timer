@@ -317,6 +317,7 @@ struct ContentView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
+            .keyboardShortcut(.space, modifiers: [])
             .padding(.vertical, 12)
 
             HStack(spacing: 10) {
@@ -329,6 +330,7 @@ struct ContentView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.large)
                 .tint(Color.secondary)
+                .keyboardShortcut("r", modifiers: [])
 
                 Button {
                     viewModel.skipSession()
@@ -339,6 +341,7 @@ struct ContentView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.large)
                 .tint(Color.secondary)
+                .keyboardShortcut("s", modifiers: [])
             }
 
             HStack(spacing: 10) {
@@ -361,6 +364,7 @@ struct ContentView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.large)
                 .tint(Color.secondary)
+                .keyboardShortcut(",", modifiers: .command)
                 .accessibilityLabel("Open timer preferences")
             }
 
@@ -717,7 +721,7 @@ private struct CircularCountdownRing: View {
                     style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
-                .shadow(color: session.ringColors[0].opacity(0.25), radius: 8)
+                .shadow(color: (session.ringColors.first ?? .accentColor).opacity(0.25), radius: 8)
         }
     }
 }

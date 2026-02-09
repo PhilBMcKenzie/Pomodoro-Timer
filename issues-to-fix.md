@@ -4,30 +4,9 @@ Fragility and reliability issues identified across device form factors and iOS c
 
 ---
 
-## P2 — Edge cases that reduce reliability
-
-### 1. No iPad keyboard shortcut support
-
-**File:** `ContentView.swift`
-
-**Problem:** The app targets iPad (`TARGETED_DEVICE_FAMILY = "1,2"`) but provides no keyboard shortcuts. iPad users with external keyboards expect at minimum Space to start/pause. This is a polish gap.
-
-**Recommended fix:** Add `.keyboardShortcut` modifiers to the primary actions:
-```swift
-Button("Start Session") { viewModel.start() }
-    .keyboardShortcut(.space, modifiers: [])
-```
-Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard macOS convention).
-
-**Verification:** Connect a hardware keyboard to an iPad simulator and test shortcuts.
-
-- [ ] Fixed
-
----
-
 ## P3 — Minor hardening
 
-### 2. `ringColors[0]` force-indexed without guard
+### 1. `ringColors[0]` force-indexed without guard
 
 **File:** `ContentView.swift:700`
 
@@ -39,7 +18,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ---
 
-### 3. Ring animation re-enable timing is fragile
+### 2. Ring animation re-enable timing is fragile
 
 **File:** `ContentView.swift:160-162`
 
@@ -58,7 +37,7 @@ withTransaction(transaction) {
 
 ---
 
-### 4. Unnecessary iOS 15 availability check
+### 3. Unnecessary iOS 15 availability check
 
 **File:** `SessionFeedbackManager.swift:52-55`
 
