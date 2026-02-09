@@ -6,25 +6,7 @@ Fragility and reliability issues identified across device form factors and iOS c
 
 ## P1 — Likely to cause problems on real-world devices
 
-### 1. Audio session is permanently activated
-
-**File:** `SessionFeedbackManager.swift:131-139`
-
-**Problem:** `AVAudioSession.setActive(true)` is called once during `init()` and never deactivated. This keeps audio hardware powered at all times, contributing to battery drain even when no sound is playing. It also prevents the system from fully reclaiming audio resources.
-
-**Recommended fix:** Activate the audio session immediately before playback and deactivate after playback completes. Use `AVAudioPlayerDelegate.audioPlayerDidFinishPlaying` to know when to deactivate:
-```swift
-try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
-```
-Move `configureAudioSession()` out of `init()` and into the `playSound` path.
-
-**Verification:** Profile with Instruments (Energy Log) and confirm audio hardware is not held active between sounds.
-
-- [ ] Fixed
-
----
-
-### 2. No Dynamic Type / accessibility text scaling support
+### 1. No Dynamic Type / accessibility text scaling support
 
 **File:** `ContentView.swift` (throughout)
 
@@ -42,7 +24,7 @@ For less critical text, use semantic font styles (`.headline`, `.subheadline`, `
 
 ---
 
-### 3. Timer ring and text look disproportionately small on iPad
+### 2. Timer ring and text look disproportionately small on iPad
 
 **File:** `ContentView.swift:66`
 
@@ -60,7 +42,7 @@ Also scale the font sizes proportionally, or set device-class-appropriate base s
 
 ---
 
-### 4. Concurrency safety / Swift 6 readiness
+### 3. Concurrency safety / Swift 6 readiness
 
 **File:** `SessionFeedbackManager.swift`
 
@@ -83,7 +65,7 @@ Audit for any other non-main-actor access paths.
 
 ---
 
-### 5. Celebration overlay burst radius is not device-relative
+### 4. Celebration overlay burst radius is not device-relative
 
 **File:** `ContentView.swift:712`
 
@@ -102,7 +84,7 @@ let radius: CGFloat = isBursting ? diameter * 0.55 : 16
 
 ## P2 — Edge cases that reduce reliability
 
-### 6. Race between foreground sync and notification action handling
+### 5. Race between foreground sync and notification action handling
 
 **File:** `ContentView.swift:154-169`
 
@@ -128,7 +110,7 @@ if newValue == .active {
 
 ---
 
-### 7. Unstructured Tasks may leak if view identity changes
+### 6. Unstructured Tasks may leak if view identity changes
 
 **File:** `ContentView.swift:24, 28`
 
@@ -142,7 +124,7 @@ if newValue == .active {
 
 ---
 
-### 8. Timer callback creates unstructured Task on every tick
+### 7. Timer callback creates unstructured Task on every tick
 
 **File:** `PomodoroViewModel.swift:155-158`
 
@@ -156,7 +138,7 @@ if newValue == .active {
 
 ---
 
-### 9. Notification permission denial is silently ignored
+### 8. Notification permission denial is silently ignored
 
 **File:** `SessionFeedbackManager.swift:37`
 
@@ -173,7 +155,7 @@ UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
 
 ---
 
-### 10. No iPad keyboard shortcut support
+### 9. No iPad keyboard shortcut support
 
 **File:** `ContentView.swift`
 
@@ -194,7 +176,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ## P3 — Minor hardening
 
-### 11. `ringColors[0]` force-indexed without guard
+### 10. `ringColors[0]` force-indexed without guard
 
 **File:** `ContentView.swift:700`
 
@@ -206,7 +188,7 @@ Consider adding `R` for reset, `S` for skip, and `,` for preferences (standard m
 
 ---
 
-### 12. Ring animation re-enable timing is fragile
+### 11. Ring animation re-enable timing is fragile
 
 **File:** `ContentView.swift:160-162`
 
@@ -225,7 +207,7 @@ withTransaction(transaction) {
 
 ---
 
-### 13. Unnecessary iOS 15 availability check
+### 12. Unnecessary iOS 15 availability check
 
 **File:** `SessionFeedbackManager.swift:52-55`
 

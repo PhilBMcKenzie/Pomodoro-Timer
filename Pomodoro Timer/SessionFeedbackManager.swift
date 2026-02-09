@@ -23,7 +23,6 @@ final class SessionFeedbackManager: NSObject, ObservableObject {
         super.init()
         notificationCenter.delegate = self
         configureNotificationActions()
-        configureAudioSession()
     }
 
     func requestAuthorizationIfNeeded() {
@@ -118,23 +117,27 @@ final class SessionFeedbackManager: NSObject, ObservableObject {
         }
 
         do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
+            try session.setActive(true)
+
             audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.delegate = self
             audioPlayer?.numberOfLoops = max(0, playCount - 1)
             audioPlayer?.prepareToPlay()
             audioPlayer?.play()
         } catch {
             print("[SessionFeedbackManager] Sound playback failed for '\(fileName)': \(error)")
             audioPlayer = nil
+            deactivateAudioSession()
         }
     }
 
-    private func configureAudioSession() {
-        let session = AVAudioSession.sharedInstance()
+    private func deactivateAudioSession() {
         do {
-            try session.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
-            try session.setActive(true)
+            try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         } catch {
-            print("[SessionFeedbackManager] Audio session configuration failed: \(error)")
+            print("[SessionFeedbackManager] Audio session deactivation failed: \(error)")
         }
     }
 
@@ -201,5 +204,12 @@ extension SessionFeedbackManager: UNUserNotificationCenterDelegate {
         }
 
         completionHandler()
+    }
+}
+
+extension SessionFeedbackManager: AVAudioPlayerDelegate {
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        audioPlayer = nil
+        deactivateAudioSession()
     }
 }
