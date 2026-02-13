@@ -10,10 +10,14 @@ import SwiftUI
 @main
 struct Pomodoro_TimerApp: App {
     @StateObject private var feedbackManager = SessionFeedbackManager()
+    @StateObject private var watchSyncManager = PhoneWatchSyncManager()
 
     var body: some Scene {
         WindowGroup {
-            ContentView(feedbackManager: feedbackManager)
+            ContentView(
+                feedbackManager: feedbackManager,
+                watchSyncManager: watchSyncManager
+            )
         }
     }
 }

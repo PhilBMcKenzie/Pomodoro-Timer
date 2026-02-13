@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct Pomodoro_Timer_Watch_App_Watch_AppApp: App {
+    @StateObject private var durationSyncManager = WatchDurationSyncManager()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(durationSyncManager: durationSyncManager)
         }
     }
 }

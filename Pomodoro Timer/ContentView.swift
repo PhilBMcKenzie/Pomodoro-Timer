@@ -19,6 +19,7 @@ struct ContentView: View {
 
     @StateObject private var viewModel = PomodoroViewModel()
     @ObservedObject private var feedbackManager: SessionFeedbackManager
+    @ObservedObject private var watchSyncManager: PhoneWatchSyncManager
     @State private var showingPreferences = false
     @State private var sessionChangeCueActive = false
     @State private var sessionCueResetID = 0
@@ -31,8 +32,12 @@ struct ContentView: View {
     @ScaledMetric(relativeTo: .title) private var sessionTitleSize: CGFloat = 40
     @Environment(\.scenePhase) private var scenePhase
 
-    init(feedbackManager: SessionFeedbackManager) {
+    init(
+        feedbackManager: SessionFeedbackManager,
+        watchSyncManager: PhoneWatchSyncManager
+    ) {
         _feedbackManager = ObservedObject(wrappedValue: feedbackManager)
+        _watchSyncManager = ObservedObject(wrappedValue: watchSyncManager)
     }
 
     var body: some View {
@@ -104,6 +109,7 @@ struct ContentView: View {
             )
         }
         .onAppear {
+            watchSyncManager.activateIfNeeded()
             sanitizeSoundPreferences()
             feedbackManager.requestAuthorizationIfNeeded()
             applyDurationPreferences()
@@ -129,6 +135,7 @@ struct ContentView: View {
             } else if viewModel.didCompleteCycle {
                 feedbackManager.cancelScheduledSessionEndNotification()
             }
+            syncWatchState(force: true)
         }
         .onChange(of: focusMinutes) { _, _ in
             applyDurationPreferences()
@@ -147,9 +154,11 @@ struct ContentView: View {
         }
         .onChange(of: viewModel.currentSession) { _, _ in
             handleSessionTransition()
+            syncWatchState(force: true)
         }
         .onChange(of: viewModel.remainingSeconds) { _, _ in
             updateCoachingMessageIfNeeded()
+            syncWatchState()
         }
         .onChange(of: viewModel.isRunning) { _, isRunning in
             if isRunning {
@@ -165,6 +174,7 @@ struct ContentView: View {
             } else {
                 feedbackManager.cancelScheduledSessionEndNotification()
             }
+            syncWatchState(force: true)
         }
         .onChange(of: scenePhase) { _, newValue in
             if newValue == .active {
@@ -505,6 +515,7 @@ struct ContentView: View {
 
     private func applyDurationPreferences() {
         viewModel.updateDurations(durationPreferences)
+        syncWatchState(force: true)
         if shouldScheduleSessionEndNotification {
             feedbackManager.scheduleSessionEndNotification(
                 for: viewModel.currentSession,
@@ -517,6 +528,18 @@ struct ContentView: View {
 
     private var shouldScheduleSessionEndNotification: Bool {
         viewModel.isRunning && scenePhase != .active
+    }
+
+    private func syncWatchState(force: Bool = false) {
+        watchSyncManager.syncState(
+            durations: durationPreferences,
+            currentSession: viewModel.currentSession,
+            remainingSeconds: viewModel.remainingSeconds,
+            isRunning: viewModel.isRunning,
+            completedFocusSessions: viewModel.completedFocusSessions,
+            didCompleteCycle: viewModel.didCompleteCycle,
+            force: force
+        )
     }
 
     private func completionSoundOption(for session: PomodoroSession) -> TimerSoundOption {
@@ -891,5 +914,8 @@ private enum SessionCoachingMessages {
 }
 
 #Preview {
-    ContentView(feedbackManager: SessionFeedbackManager())
+    ContentView(
+        feedbackManager: SessionFeedbackManager(),
+        watchSyncManager: PhoneWatchSyncManager()
+    )
 }
